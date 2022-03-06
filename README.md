@@ -1,10 +1,21 @@
-# go-template
+# photo-metadata-organizer
 
-Quick starter template for new go projects
+Organizes photos based on their EXIF metadata.
 
-```sh
-go mod init app
+- currently supports jpeg format
+- creates directories based on year/month (e.g. `2022/01`) in photos metadata
+
+## Usage
+
 ```
+-d string
+    destination directory
+-q	dry run doesn't actually move files
+-t string
+    target directory
+```
+
+## Development
 
 ```
  Choose a make command to run

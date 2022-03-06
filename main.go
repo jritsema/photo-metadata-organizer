@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,4 +28,10 @@ func handleSigTerms() {
 		fmt.Println("received SIGTERM, exiting")
 		os.Exit(1)
 	}()
+}
+
+func check(e error) {
+	if e != nil {
+		log.Fatal(e)
+	}
 }
