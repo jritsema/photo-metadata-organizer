@@ -50,7 +50,10 @@ func run(args []string, stdout io.Writer) error {
 			x, err := exif.Decode(f)
 			check(err)
 			tm, err := x.DateTime()
-			check(err)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
 			fmt.Println("Taken:", tm)
 
 			//format {year}/{month}/{filename}
