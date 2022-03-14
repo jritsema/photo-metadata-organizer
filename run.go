@@ -17,12 +17,13 @@ func run(args []string, stdout io.Writer) error {
 
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
 	var (
-		dryRun       bool
-		target, dest string
+		dryRun, overwrite bool
+		target, dest      string
 	)
 	flags.StringVar(&target, "t", "", "target directory")
 	flags.StringVar(&dest, "d", "", "destination directory")
 	flags.BoolVar(&dryRun, "q", false, "dry run doesn't actually move files")
+	flags.BoolVar(&overwrite, "w", false, "overwrite destination file, if it exists")
 	err := flags.Parse(args[1:])
 	check(err)
 	fmt.Println("target =", target)
@@ -37,6 +38,7 @@ func run(args []string, stdout io.Writer) error {
 	files, err := ioutil.ReadDir(target)
 	check(err)
 	for _, file := range files {
+		fmt.Println()
 		if !file.IsDir() &&
 			strings.HasSuffix(file.Name(), ".jpg") ||
 			strings.HasSuffix(file.Name(), ".jpeg") ||
@@ -63,7 +65,12 @@ func run(args []string, stdout io.Writer) error {
 			dest := path.Join(dest, year, month, file.Name())
 			t := path.Join(target, file.Name())
 			fmt.Printf("moving to %v \n", dest)
-
+			if fileExists(dest) {
+				fmt.Println("already exists")
+				if !overwrite {
+					continue
+				}
+			}
 			if !dryRun {
 				containingDir := path.Dir(dest)
 				err = os.MkdirAll(containingDir, os.ModePerm)
@@ -71,10 +78,15 @@ func run(args []string, stdout io.Writer) error {
 				err = os.Rename(t, dest)
 				check(err)
 			}
-
-			fmt.Println()
 		}
 	}
 
 	return nil
+}
+
+func fileExists(f string) bool {
+	if _, err := os.Stat(f); errors.Is(err, os.ErrNotExist) {
+		return false
+	}
+	return true
 }
