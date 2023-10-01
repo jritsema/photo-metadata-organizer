@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
-
-	"github.com/rwcarlsen/goexif/exif"
+	"time"
 )
 
 func run(args []string, stdout io.Writer) error {
@@ -39,27 +40,39 @@ func run(args []string, stdout io.Writer) error {
 	check(err)
 	for _, file := range files {
 		fmt.Println()
-		if !file.IsDir() &&
-			strings.HasSuffix(file.Name(), ".jpg") ||
-			strings.HasSuffix(file.Name(), ".jpeg") ||
-			strings.HasSuffix(file.Name(), ".JPG") {
+		if !file.IsDir() {
 
 			fmt.Printf("processing %v/%v \n", target, file.Name())
-			f, err := os.Open(path.Join(target, file.Name()))
-			check(err)
+			filePath := path.Join(target, file.Name())
 
 			//get the create date
-			x, err := exif.Decode(f)
+			stdout, stderr, err := execute("exiftool", []string{
+				"-CreateDate",
+				"-DateTimeOriginal",
+				filePath,
+			})
 			check(err)
-			tm, err := x.DateTime()
-			if err != nil {
-				fmt.Println(err)
+			if stderr != "" {
+				check(errors.New(stderr))
+			}
+			fmt.Println(stdout)
+			if stdout == "" {
+				fmt.Println("create date not found!")
 				continue
 			}
+
+			//could return one or both "Create Date", "Date/Time Original", or nothing
+			lines := strings.Split(stdout, "\n")
+
+			//just take 1st line
+			parts := strings.Split(lines[0], " : ")
+			createDate := strings.TrimSpace(parts[1])
+			tm, err := time.Parse("2006:01:02 15:04:05", createDate)
+			check(err)
 			fmt.Println("Taken:", tm)
 
 			//format {year}/{month}/{filename}
-			parts := strings.Split(tm.String(), "-")
+			parts = strings.Split(tm.String(), "-")
 			year := parts[0]
 			month := parts[1]
 			dest := path.Join(dest, year, month, file.Name())
@@ -89,4 +102,25 @@ func fileExists(f string) bool {
 		return false
 	}
 	return true
+}
+
+//executes a command and returns its stdout and stderr
+func execute(name string, args []string) (string, string, error) {
+
+	// Command to execute
+	cmd := exec.Command(name, args...)
+
+	// Run the command and capture its stdout and stderr
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	// Execute the command
+	err := cmd.Run()
+	if err != nil {
+		return "", "", err
+	}
+
+	// Print the stdout and stderr
+	return stdout.String(), stderr.String(), nil
 }
