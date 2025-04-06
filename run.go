@@ -4,8 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -13,7 +11,7 @@ import (
 	"github.com/rwcarlsen/goexif/exif"
 )
 
-func run(args []string, stdout io.Writer) error {
+func run(args []string) error {
 
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
 	var (
@@ -24,6 +22,7 @@ func run(args []string, stdout io.Writer) error {
 	flags.StringVar(&dest, "d", "", "destination directory")
 	flags.BoolVar(&dryRun, "q", false, "dry run doesn't actually move files")
 	flags.BoolVar(&overwrite, "w", false, "overwrite destination file, if it exists")
+
 	err := flags.Parse(args[1:])
 	check(err)
 	fmt.Println("target =", target)
@@ -35,13 +34,14 @@ func run(args []string, stdout io.Writer) error {
 		return errors.New("")
 	}
 
-	files, err := ioutil.ReadDir(target)
+	files, err := os.ReadDir(target)
 	check(err)
 	for _, file := range files {
 		fmt.Println()
 		if !file.IsDir() &&
 			strings.HasSuffix(file.Name(), ".jpg") ||
 			strings.HasSuffix(file.Name(), ".jpeg") ||
+			strings.HasSuffix(file.Name(), ".JPEG") ||
 			strings.HasSuffix(file.Name(), ".JPG") {
 
 			fmt.Printf("processing %v/%v \n", target, file.Name())
@@ -50,10 +50,13 @@ func run(args []string, stdout io.Writer) error {
 
 			//get the create date
 			x, err := exif.Decode(f)
-			check(err)
+			if err != nil {
+				fmt.Println("skipping, error reading EXIF data:", err)
+				continue
+			}
 			tm, err := x.DateTime()
 			if err != nil {
-				fmt.Println(err)
+				fmt.Println("skipping, error reading DateTime:", err)
 				continue
 			}
 			fmt.Println("Taken:", tm)

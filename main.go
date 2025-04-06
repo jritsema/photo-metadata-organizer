@@ -14,7 +14,7 @@ func main() {
 	handleSigTerms()
 
 	//run
-	if err := run(os.Args, os.Stdout); err != nil {
+	if err := run(os.Args); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
