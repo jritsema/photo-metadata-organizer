@@ -4,6 +4,7 @@ Organizes photos based on their EXIF metadata.
 
 - currently supports jpeg format
 - creates directories based on year/month (e.g. `2022/01`) in photos metadata
+- can add tags to images using exiftool
 
 ## Usage
 
@@ -13,6 +14,19 @@ Organizes photos based on their EXIF metadata.
 -q	dry run doesn't actually move files
 -t string
     target directory
+-tag string
+    tags to add to images (can be specified multiple times)
+-w	overwrite destination file, if it exists
+```
+
+### Examples
+
+```
+# Organize photos with tags
+./app -t /path/to/photos -d /destination/path -tag Wedding -tag Family
+
+# Dry run (doesn't move files or add tags)
+./app -t /path/to/photos -d /destination/path -tag Holiday -q
 ```
 
 ## Development
