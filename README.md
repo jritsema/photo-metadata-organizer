@@ -12,8 +12,10 @@ Organizes photos based on their EXIF metadata.
 -d string
     destination directory
 -q	dry run doesn't actually move files
+-s string
+    source directory
 -t string
-    target directory
+    shortcut for -tag
 -tag string
     tags to add to images (can be specified multiple times)
 -w	overwrite destination file, if it exists
@@ -23,10 +25,13 @@ Organizes photos based on their EXIF metadata.
 
 ```
 # Organize photos with tags
-./app -t /path/to/photos -d /destination/path -tag Wedding -tag Family
+./app -s /path/to/photos -d /destination/path -tag Wedding -tag Family
+
+# Using the shortcut for tags
+./app -s /path/to/photos -d /destination/path -t Wedding -t Family
 
 # Dry run (doesn't move files or add tags)
-./app -t /path/to/photos -d /destination/path -tag Holiday -q
+./app -s /path/to/photos -d /destination/path -t Holiday -q
 ```
 
 ## Development

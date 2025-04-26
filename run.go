@@ -17,30 +17,31 @@ func run(args []string) error {
 	flags := flag.NewFlagSet(args[0], flag.ExitOnError)
 	var (
 		dryRun, overwrite bool
-		target, dest      string
+		source, dest      string
 		tags              multiFlag
 	)
-	flags.StringVar(&target, "t", "", "target directory")
+	flags.StringVar(&source, "s", "", "source directory")
 	flags.StringVar(&dest, "d", "", "destination directory")
 	flags.BoolVar(&dryRun, "q", false, "dry run doesn't actually move files")
 	flags.BoolVar(&overwrite, "w", false, "overwrite destination file, if it exists")
 	flags.Var(&tags, "tag", "tags to add to images (can be specified multiple times)")
+	flags.Var(&tags, "t", "shortcut for -tag")
 
 	err := flags.Parse(args[1:])
 	check(err)
-	fmt.Println("target =", target)
+	fmt.Println("source =", source)
 	fmt.Println("dest =", dest)
 	fmt.Println("Dry Run =", dryRun)
 	if len(tags) > 0 {
 		fmt.Println("Tags =", tags)
 	}
 	fmt.Println()
-	if target == "" || dest == "" {
+	if source == "" || dest == "" {
 		flags.Usage()
 		return errors.New("")
 	}
 
-	files, err := os.ReadDir(target)
+	files, err := os.ReadDir(source)
 	check(err)
 	for _, file := range files {
 		fmt.Println()
@@ -48,8 +49,8 @@ func run(args []string) error {
 			(strings.HasSuffix(strings.ToLower(file.Name()), ".jpg") ||
 			strings.HasSuffix(strings.ToLower(file.Name()), ".jpeg")) {
 
-			fmt.Printf("processing %v/%v \n", target, file.Name())
-			filePath := path.Join(target, file.Name())
+			fmt.Printf("processing %v/%v \n", source, file.Name())
+			filePath := path.Join(source, file.Name())
 			f, err := os.Open(filePath)
 			check(err)
 
